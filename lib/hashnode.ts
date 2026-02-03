@@ -1,7 +1,21 @@
-import { HashnodePost, HashnodeResponse } from '@/types/hashnode';
+import axios from 'axios';
+import { HashnodePost } from '@/types/hashnode';
 
-const GQL_ENDPOINT = process.env.NEXT_PUBLIC_HASHNODE_GQL_ENDPOINT || 'https://gql.hashnode.com';
-const PUBLICATION_HOST = process.env.NEXT_PUBLIC_HASHNODE_PUBLICATION_HOST || '';
+const GQL_ENDPOINT =
+  process.env.NEXT_PUBLIC_HASHNODE_GQL_ENDPOINT ?? 'https://gql.hashnode.com';
+
+const PUBLICATION_HOST =
+  process.env.NEXT_PUBLIC_HASHNODE_PUBLICATION_HOST!;
+
+// Axios instance
+const gqlClient = axios.create({
+  baseURL: GQL_ENDPOINT,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  timeout: 10000,
+});
 
 // Fetch all posts
 export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
@@ -38,34 +52,32 @@ export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
     }
   `;
 
+  console.log('PUBLICATION_HOST:', PUBLICATION_HOST); // ADD THIS
+  console.log('GQL_ENDPOINT:', GQL_ENDPOINT); // ADD THIS
+
   try {
-    const response = await fetch(GQL_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const { data } = await gqlClient.post('', {
+      query,
+      variables: {
+        host: PUBLICATION_HOST,
+        first,
       },
-      body: JSON.stringify({
-        query,
-        variables: { host: PUBLICATION_HOST, first },
-      }),
-      next: { revalidate: 60 },
     });
 
-    const json = await response.json();
-    
-    // Check for errors
-    if (json.errors) {
-      console.error('GraphQL Errors:', json.errors);
+    console.log('Raw API Response:', JSON.stringify(data, null, 2)); // ADD THIS
+
+    if (data.errors) {
+      console.error('GraphQL Errors:', data.errors);
       return [];
     }
+
+    const posts = data.data.publication.posts.edges.map(
+      (edge: any) => edge.node
+    );
     
-    // Check if data exists
-    if (!json.data || !json.data.publication) {
-      console.error('No publication data found. Check your PUBLICATION_HOST:', PUBLICATION_HOST);
-      return [];
-    }
-    
-    return json.data.publication.posts.edges.map((edge: any) => edge.node);
+    console.log('Parsed posts:', posts.length); // ADD THIS
+
+    return posts;
   } catch (error) {
     console.error('Failed to fetch posts:', error);
     return [];
@@ -104,33 +116,20 @@ export async function getPostBySlug(slug: string): Promise<HashnodePost | null> 
   `;
 
   try {
-    const response = await fetch(GQL_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const { data } = await gqlClient.post('', {
+      query,
+      variables: {
+        host: PUBLICATION_HOST,
+        slug,
       },
-      body: JSON.stringify({
-        query,
-        variables: { host: PUBLICATION_HOST, slug },
-      }),
-      next: { revalidate: 60 },
     });
 
-    const json = await response.json();
-    
-    // Check for errors
-    if (json.errors) {
-      console.error('GraphQL Errors:', json.errors);
+    if (data.errors) {
+      console.error('GraphQL Errors:', data.errors);
       return null;
     }
-    
-    // Check if data exists
-    if (!json.data || !json.data.publication) {
-      console.error('No publication data found. Check your PUBLICATION_HOST:', PUBLICATION_HOST);
-      return null;
-    }
-    
-    return json.data.publication.post || null;
+
+    return data.data.publication.post;
   } catch (error) {
     console.error('Failed to fetch post:', error);
     return null;

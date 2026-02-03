@@ -6,6 +6,8 @@ export const revalidate = 60; // Revalidate every 60 seconds
 
 export default async function HomePage() {
   const posts = await getAllPosts(10);
+
+  console.log(posts);
   
   if (posts.length === 0) {
     return (
@@ -19,6 +21,7 @@ export default async function HomePage() {
   }
 
   const [featuredPost, ...otherPosts] = posts;
+  console.log(featuredPost);
 
   return (
     <main className="min-h-screen">
