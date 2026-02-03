@@ -78,8 +78,10 @@ export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
     console.log('Parsed posts:', posts.length); // ADD THIS
 
     return posts;
-  } catch (error) {
-    console.error('Failed to fetch posts:', error);
+  } catch (error: any) {
+    console.error('STATUS:', error.response?.status);
+    console.error('RESPONSE BODY:', JSON.stringify(error.response?.data));
+    console.error('REQUEST BODY:', JSON.stringify(error.config?.data));
     return [];
   }
 }
