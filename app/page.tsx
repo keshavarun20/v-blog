@@ -5,7 +5,7 @@ import ArticleGrid from '@/components/ArticleGrid';
 export const revalidate = 60; // Revalidate every 60 seconds
 
 export default async function HomePage() {
-  const posts = await getAllPosts(10);
+  const posts = await getAllPosts();
 
   console.log(posts);
   
