@@ -5,34 +5,46 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export const revalidate = 60;
+export const dynamicParams = true; // Allow dynamic routes
 
-// Generate static params for all posts
+// Generate static params for all posts - with error handling
 export async function generateStaticParams() {
-  const posts = await getAllPosts(100);
-  return posts.map((post) => ({
-    slug: post.slug,
-  }));
+  try {
+    const posts = await getAllPosts(100);
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return []; // Return empty array if fails
+  }
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug);
-  
-  if (!post) {
+  try {
+    const post = await getPostBySlug(params.slug);
+    
+    if (!post) {
+      return {
+        title: 'Post Not Found',
+      };
+    }
+
+    return {
+      title: post.title,
+      description: post.brief,
+      openGraph: {
+        title: post.title,
+        description: post.brief,
+        images: post.coverImage ? [post.coverImage.url] : [],
+      },
+    };
+  } catch (error) {
     return {
       title: 'Post Not Found',
     };
   }
-
-  return {
-    title: post.title,
-    description: post.brief,
-    openGraph: {
-      title: post.title,
-      description: post.brief,
-      images: post.coverImage ? [post.coverImage.url] : [],
-    },
-  };
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
