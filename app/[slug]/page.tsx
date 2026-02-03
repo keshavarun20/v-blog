@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 export const revalidate = 60;
-export const dynamicParams = true; // Allow dynamic routes
+export const dynamicParams = true;
 
-// Generate static params for all posts - with error handling
+// Generate static params - AWAIT params
 export async function generateStaticParams() {
   try {
     const posts = await getAllPosts(100);
@@ -16,14 +16,15 @@ export async function generateStaticParams() {
     }));
   } catch (error) {
     console.error('Error generating static params:', error);
-    return []; // Return empty array if fails
+    return [];
   }
 }
 
-// Generate metadata for SEO
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+// Generate metadata - AWAIT params
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   try {
-    const post = await getPostBySlug(params.slug);
+    const { slug } = await params; // AWAIT HERE
+    const post = await getPostBySlug(slug);
     
     if (!post) {
       return {
@@ -47,8 +48,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const post = await getPostBySlug(params.slug);
+// Main component - AWAIT params
+export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params; // AWAIT HERE
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();
