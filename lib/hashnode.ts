@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { HashnodePost } from '@/types/hashnode';
 
 const GQL_ENDPOINT =
@@ -7,17 +6,6 @@ const GQL_ENDPOINT =
 const PUBLICATION_HOST =
   process.env.NEXT_PUBLIC_HASHNODE_PUBLICATION_HOST!;
 
-// Axios instance
-const gqlClient = axios.create({
-  baseURL: GQL_ENDPOINT,
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-  timeout: 10000,
-});
-
-// Fetch all posts
 export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
   const query = `
     query Publication($host: String!, $first: Int!) {
@@ -50,7 +38,7 @@ export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
         Accept: 'application/json',
       },
       body: JSON.stringify({ query, variables: { host: PUBLICATION_HOST, first } }),
-      next: { revalidate: 60 }, // 👈 Next.js will refetch every 60s
+      cache: 'no-store',
     });
 
     const data = await res.json();
@@ -67,7 +55,6 @@ export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
   }
 }
 
-// Fetch single post by slug
 export async function getPostBySlug(slug: string): Promise<HashnodePost | null> {
   const query = `
     query Publication($host: String!, $slug: String!) {
@@ -96,7 +83,7 @@ export async function getPostBySlug(slug: string): Promise<HashnodePost | null> 
         Accept: 'application/json',
       },
       body: JSON.stringify({ query, variables: { host: PUBLICATION_HOST, slug } }),
-      next: { revalidate: 60 },
+      cache: 'no-store',
     });
 
     const data = await res.json();
@@ -111,4 +98,46 @@ export async function getPostBySlug(slug: string): Promise<HashnodePost | null> 
     console.error('Failed to fetch post:', error);
     return null;
   }
+}
+
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+export function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  const intervals = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+  };
+
+  for (const [unit, seconds] of Object.entries(intervals)) {
+    const interval = Math.floor(diffInSeconds / seconds);
+    if (interval >= 1) {
+      return `${interval} ${unit}${interval === 1 ? '' : 's'} ago`;
+    }
+  }
+
+  return 'Just now';
+}
+
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength).trim() + '...';
+}
+
+export function readingTimeText(minutes: number): string {
+  return `${minutes} min read`;
 }
