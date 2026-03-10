@@ -1,9 +1,7 @@
 import { getAllPosts } from '@/lib/hashnode';
 import Link from 'next/link';
-import { formatDate, readingTimeText } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
-
-export const revalidate = 60;
+import { formatDate, readingTimeText } from '@/lib/hashnode';
 
 export default async function HomePage() {
   const posts = await getAllPosts(50);
