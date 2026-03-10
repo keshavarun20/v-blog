@@ -178,11 +178,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {post.title}
         </h1>
 
-        {/* Brief */}
-        <p className="text-xl text-gray-600 mb-8">
-          {post.brief}
-        </p>
-
         {/* Meta */}
         <div className="flex items-center gap-4 text-sm text-gray-500 mb-8">
           <div className="flex items-center gap-3">

@@ -8,9 +8,9 @@ export default async function HomePage() {
   const posts = await getAllPosts(50);
 
   return (
-    <main className="min-h-screen max-w-2xl mx-auto px-6 py-16">
+    <main className="min-h-screen max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
       {/* Header */}
-      <header className="mb-16">
+      <header className="mb-10 sm:mb-16">
         <h1 className="text-3xl font-bold text-gray-900">Blog</h1>
         <p className="text-gray-500 mt-1">Thoughts, stories & ideas</p>
       </header>
@@ -19,12 +19,9 @@ export default async function HomePage() {
         <p className="text-gray-400 text-center py-24">No posts yet. Start writing!</p>
       ) : (
         <ul className="flex flex-col divide-y divide-gray-100">
-          {posts.map((post) => (
-            <li key={post.id}>
-              <Link
-                href={`/${post.slug}`}
-                className="group flex flex-col gap-2 py-8 first:pt-0"
-              >
+          {posts.map((post, index) => (
+            <li key={post.id} className={`py-8 ${index === 0 ? 'pt-0' : ''}`}>
+              <Link href={`/${post.slug}`} className="group flex flex-col gap-2">
                 {/* Tag */}
                 {post.tags && post.tags.length > 0 && (
                   <span className="text-xs font-semibold tracking-wider text-purple-600 uppercase">
@@ -33,7 +30,7 @@ export default async function HomePage() {
                 )}
 
                 {/* Title */}
-                <h2 className="text-xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors leading-snug">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors leading-snug">
                   {post.title}
                 </h2>
 
@@ -45,7 +42,7 @@ export default async function HomePage() {
                 )}
 
                 {/* Meta */}
-                <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-400 mt-1">
                   <span>{post.author.name}</span>
                   <span>•</span>
                   <span>{formatDate(post.publishedAt)}</span>
