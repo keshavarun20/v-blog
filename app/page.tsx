@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { formatDate, readingTimeText } from '@/lib/hashnode';
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const posts = await getAllPosts(50);
 
