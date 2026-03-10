@@ -29,21 +29,11 @@ export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
               title
               brief
               slug
-              coverImage {
-                url
-              }
-              content {
-                html
-              }
+              coverImage { url }
+              content { html }
               publishedAt
-              author {
-                name
-                profilePicture
-              }
-              tags {
-                name
-                slug
-              }
+              author { name profilePicture }
+              tags { name slug }
               readTimeInMinutes
             }
           }
@@ -52,36 +42,27 @@ export async function getAllPosts(first: number = 20): Promise<HashnodePost[]> {
     }
   `;
 
-  console.log('PUBLICATION_HOST:', PUBLICATION_HOST); // ADD THIS
-  console.log('GQL_ENDPOINT:', GQL_ENDPOINT); // ADD THIS
-
   try {
-    const { data } = await gqlClient.post('', {
-      query,
-      variables: {
-        host: PUBLICATION_HOST,
-        first,
+    const res = await fetch(GQL_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
+      body: JSON.stringify({ query, variables: { host: PUBLICATION_HOST, first } }),
+      next: { revalidate: 60 }, // 👈 Next.js will refetch every 60s
     });
 
-    console.log('Raw API Response:', JSON.stringify(data, null, 2)); // ADD THIS
+    const data = await res.json();
 
     if (data.errors) {
       console.error('GraphQL Errors:', data.errors);
       return [];
     }
 
-    const posts = data.data.publication.posts.edges.map(
-      (edge: any) => edge.node
-    );
-    
-    console.log('Parsed posts:', posts.length); // ADD THIS
-
-    return posts;
-  } catch (error: any) {
-    console.error('STATUS:', error.response?.status);
-    console.error('RESPONSE BODY:', JSON.stringify(error.response?.data));
-    console.error('REQUEST BODY:', JSON.stringify(error.config?.data));
+    return data.data.publication.posts.edges.map((edge: any) => edge.node);
+  } catch (error) {
+    console.error('Failed to fetch posts:', error);
     return [];
   }
 }
@@ -96,21 +77,11 @@ export async function getPostBySlug(slug: string): Promise<HashnodePost | null> 
           title
           brief
           slug
-          coverImage {
-            url
-          }
-          content {
-            html
-          }
+          coverImage { url }
+          content { html }
           publishedAt
-          author {
-            name
-            profilePicture
-          }
-          tags {
-            name
-            slug
-          }
+          author { name profilePicture }
+          tags { name slug }
           readTimeInMinutes
         }
       }
@@ -118,13 +89,17 @@ export async function getPostBySlug(slug: string): Promise<HashnodePost | null> 
   `;
 
   try {
-    const { data } = await gqlClient.post('', {
-      query,
-      variables: {
-        host: PUBLICATION_HOST,
-        slug,
+    const res = await fetch(GQL_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
+      body: JSON.stringify({ query, variables: { host: PUBLICATION_HOST, slug } }),
+      next: { revalidate: 60 },
     });
+
+    const data = await res.json();
 
     if (data.errors) {
       console.error('GraphQL Errors:', data.errors);
