@@ -1,9 +1,9 @@
-import { getPostBySlug, getAllPosts } from '@/lib/hashnode';
-import { formatDate, readingTimeText } from '@/lib/utils';
-import Image from 'next/image';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { getPostBySlug, getAllPosts } from "@/lib/hashnode";
+import { formatDate, readingTimeText } from "@/lib/utils";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const revalidate = 60;
 export const dynamicParams = true;
@@ -13,16 +13,20 @@ export async function generateStaticParams() {
     const posts = await getAllPosts(50);
     return posts.map((post) => ({ slug: post.slug }));
   } catch (error) {
-    console.error('Error generating static params:', error);
+    console.error("Error generating static params:", error);
     return [];
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   try {
     const { slug } = await params;
     const post = await getPostBySlug(slug);
-    if (!post) return { title: 'Post Not Found' };
+    if (!post) return { title: "Post Not Found" };
     return {
       title: post.title,
       description: post.brief,
@@ -33,11 +37,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       },
     };
   } catch (error) {
-    return { title: 'Post Not Found' };
+    return { title: "Post Not Found" };
   }
 }
 
-export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
 
@@ -45,7 +53,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   return (
     <article className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-200">
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         .hashnode-content p {
           color: #374151;
           font-size: 1rem;
@@ -184,7 +194,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         .dark .hashnode-content hr { border-top-color: #374151; }
         .dark .hashnode-content th,
         .dark .hashnode-content td { border-color: #374151; color: #e5e7eb; }
-      `}} />
+      `,
+        }}
+      />
 
       {/* Top nav */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 flex items-center justify-between">
@@ -200,9 +212,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       {/* Header */}
       <header className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {post.tags && post.tags.length > 0 && (
-          <span className="inline-block text-xs font-semibold tracking-wider text-purple-600 dark:text-purple-400 uppercase mb-4">
+          <Link
+            href={`/tag/${post.tags[0].slug}`}
+            className="text-xs font-semibold tracking-wider text-purple-600 dark:text-purple-400 uppercase hover:underline"
+          >
             {post.tags[0].name}
-          </span>
+          </Link>
         )}
 
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-5 leading-tight">
